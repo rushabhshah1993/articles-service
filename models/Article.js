@@ -21,7 +21,12 @@ const ArticleSchema = new mongoose.Schema({
         required: true
     },
     media: {
-        type: Array
+        images: {
+            type: Array
+        },
+        videos: {
+            type: Array
+        }
     },
     thumbnail: {
         type: String
@@ -30,13 +35,27 @@ const ArticleSchema = new mongoose.Schema({
         type: Array,
         required: true
     },
-    created_at: {
-        type: Date,
-        required: true
+    competition: {
+        type: Array,
+        default: ['IFC']
     },
-    updated_at: {
-        type: Date,
-        default: Date.now
+    fighter: {
+        type: String
+    },
+    location: {
+        country: {
+            type: String,
+            default: 'India'
+        },
+        city: {
+            type: String,
+            default: 'Mumbai'
+        }
+    }
+}, {
+    timestamps: {
+        createdAt: 'created_at',
+        updatedAt: 'updated_at'
     }
 });
 

@@ -13,6 +13,48 @@ router.get(
     }
 );
 
+// @route GET /articles/search
+// @description Fetch all articles by query
+// @access Public
+router.get(
+    '/search',
+    (req, res) => {
+        let query = req.query;
+        let queryObj = {};
+
+        if(Object.keys(query).length) {
+            let keys = Object.keys(query);
+
+            queryObj = createQueryObj(keys, query);
+        };
+
+        Article.find(queryObj)
+        .then(articles => {
+            if(articles.length === 0) throw new Error;
+            res.json(articles);
+        })
+        .catch(err => res.status(404).json({
+            error: 'No articles found with the following query', 
+            query: req.query
+        }));
+    }
+);
+
+// @route GET /articles/sort
+// @description Sort all articles
+// @access Public
+router.get(
+    '/sort',
+    (req, res) => {
+        Article.find()
+        .sort({
+            "created_at": req.query.order === 'asc' ? 1 : -1
+        })
+        .then(articles => res.json(articles))
+        .catch(err => res.status(404).json({error: 'No articles found'}));
+    }
+);
+
 // @route GET /articles
 // @description Fetch all articles
 // @access Public
@@ -21,7 +63,7 @@ router.get(
     (req, res) => {
         Article.find()
         .then(articles => res.json(articles))
-        .catch(err => res.status(404).json({noarticlesfound: 'No articles found'}));
+        .catch(err => res.status(404).json({error: 'No articles found'}));
     }
 );
 
@@ -33,7 +75,7 @@ router.get(
     (req, res) => {
         Article.findById(req.params.id)
         .then(article => res.json(article))
-        .catch(err => res.status(404).json({noarticlefound: 'No article found'}));
+        .catch(err => res.status(404).json({error: `No article found`}));
     }
 );
 
@@ -43,7 +85,6 @@ router.get(
 router.post(
     '/',
     (req, res) => {
-        console.log("body:   ", req.body);
         Article.create(req.body)
         .then(article => res.json({
             message: 'Article created successfully',
@@ -84,5 +125,36 @@ router.delete(
         .catch(err => res.status(404).json({error: 'Article not found'}));
     }
 );
+
+function createQueryObj(keys, query) {
+    let queryObj = {};
+    let singularKeys = ['country', 'city', 'tags', 'competition', 'from', 'to'];
+    for(let key of keys) {
+        if(!singularKeys.includes(key)) {
+            queryObj[key] = {
+                "$regex": query[key],
+                "$options": "i"
+            }
+        } else if(key === 'country' || key === 'city') {
+            queryObj[`location.${key}`] = {
+                "$regex": query[key],
+                "$options": "i"
+            }
+        } else if(key === 'tags' || key === 'competition') {
+            queryObj[key] = {
+                $in: query[key].split(',').map(ele => ele.trim())
+            }
+        } else if(key === 'from') {
+            queryObj['created_at'] = {
+                $gte: new Date(+query[key])
+            };
+            if(keys.includes('to')) {
+                queryObj.created_at["$lte"] = new Date(+query['to'])
+            }
+        }
+    }
+
+    return queryObj;
+}
 
 module.exports = router;
