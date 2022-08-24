@@ -2,10 +2,13 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const helmet = require('helmet');
 const connectDB = require('./config/db');
 const ArticlesRoutes = require('./routes/api/articles');
 
 const app = express();
+
+app.use(helmet);
 
 connectDB();
 
