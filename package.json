@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "A microservice for handling articles",
   "main": "index.js",
+  "engines": {
+    "node": "v14.16.0"
+  },
   "scripts": {
     "start": "node index.js",
     "app": "nodemon index.js",
