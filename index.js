@@ -8,7 +8,7 @@ const ArticlesRoutes = require('./routes/api/articles');
 
 const app = express();
 
-app.use(helmet);
+app.use(helmet());
 
 connectDB();
 
