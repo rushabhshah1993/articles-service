@@ -17,7 +17,7 @@ router.get(
 // @description Fetch all articles by query
 // @access Public
 router.get(
-    '/search',
+    '/v1/search',
     (req, res) => {
         let query = req.query;
         let queryObj = {};
@@ -40,11 +40,62 @@ router.get(
     }
 );
 
+// @route GET /articles/search
+// @description Fetch all articles by query (Paginated)
+// @access Public
+router.get(
+    '/search',
+    async (req, res) => {
+        let query = req.query;
+        let queryObj = {};
+
+        if(Object.keys(query).length) {
+            let keys = Object.keys(query);
+
+            queryObj = createQueryObj(keys, query);
+        };
+
+        let totalArticles = await Article.find().then(results => results.length);
+
+        const page = parseInt(req.query.page);
+        const limit = parseInt(req.query.limit);
+        const skipIndex = (page - 1) * limit;
+
+        Article.find(queryObj)
+        .limit(limit)
+        .skip(skipIndex)
+        .then(articles => {
+            if(articles.length === 0) throw new Error;
+            else {
+                let has_next = false;
+                if(articles.length < limit) has_next = false;
+                else if(articles.length === limit && articles.length <= totalArticles - skipIndex) has_next = true;
+
+                res.json({
+                    results: articles,
+                    pagination: {
+                        page: page,
+                        limit: limit,
+                        total: articles.length,
+                        count: totalArticles,
+                        has_next: has_next,
+                        has_previous: skipIndex > 0
+                    }
+                });
+            }
+        })
+        .catch(err => res.status(404).json({
+            error: 'No articles found with the following query', 
+            query: req.query
+        }));
+    }
+);
+
 // @route GET /articles/sort
 // @description Sort all articles
 // @access Public
 router.get(
-    '/sort',
+    '/v1/sort',
     (req, res) => {
         Article.find()
         .sort({
@@ -55,15 +106,59 @@ router.get(
     }
 );
 
+// @route GET /articles/sort
+// @description Sort all articles (Paginated)
+// @access Public
+router.get(
+    '/sort',
+    async (req, res) => {
+        const page = parseInt(req.query.page);
+        const limit = parseInt(req.query.limit);
+        const skipIndex = (page - 1) * limit;
+
+        let totalArticles = await Article.find().then(results => results.length);
+
+        Article.find()
+        .sort({
+            "created_at": req.query.order === 'asc' ? 1 : -1
+        })
+        .limit(limit)
+        .skip(skipIndex)
+        .then(articles => {
+            let has_next = false;
+            if(articles.length < limit) has_next = false;
+            else if(articles.length === limit && articles.length <= totalArticles - skipIndex) has_next = true;
+
+            res.json({
+                results: articles,
+                pagination: {
+                    page: page,
+                    limit: limit,
+                    total: articles.length,
+                    count: totalArticles,
+                    has_next: has_next,
+                    has_previous: skipIndex > 0
+                }
+            })
+        })
+        .catch(err => res.status(404).json({error: 'No articles found'}));
+    }
+);
+
 // @route GET /articles
 // @description Fetch all articles
 // @access Public
 router.get(
     '/',
+    paginatedResults(),
     (req, res) => {
         Article.find()
-        .then(articles => res.json(articles))
-        .catch(err => res.status(404).json({error: 'No articles found'}));
+        .then(() => {
+            return res.json(res.paginatedResults);
+        })
+        .catch(err => {
+            res.status(404).json({error: 'No articles found'})
+        });
     }
 );
 
@@ -128,7 +223,7 @@ router.delete(
 
 function createQueryObj(keys, query) {
     let queryObj = {};
-    let singularKeys = ['country', 'city', 'tags', 'competition', 'from', 'to'];
+    let singularKeys = ['country', 'city', 'tags', 'competition', 'from', 'to', 'has_video'];
     for(let key of keys) {
         if(!singularKeys.includes(key)) {
             queryObj[key] = {
@@ -151,10 +246,50 @@ function createQueryObj(keys, query) {
             if(keys.includes('to')) {
                 queryObj.created_at["$lte"] = new Date(+query['to'])
             }
+        } else if(key === 'has_video') {
+            queryObj[key] = {
+                "$regex": query[key] == 'true',
+                "$options": "i"
+            }
         }
     }
 
     return queryObj;
+}
+
+function paginatedResults() {
+    return async (req, res, next) => {
+        const page = parseInt(req.query.page);
+        const limit = parseInt(req.query.limit);
+        const skipIndex = (page - 1) * limit;
+        const results = {};
+
+        try {
+            let totalArticles = await Article.find().then(res => res.length);
+            results.results = await Article.find()
+                .sort({_id: 1})
+                .limit(limit)
+                .skip(skipIndex)
+                .exec();
+
+            let has_next = false;
+            if(results.results.length < limit) has_next = false;
+            else if(results.results.length === limit && results.results.length <= totalArticles - skipIndex) has_next = true;
+
+            res.paginatedResults = results;
+            res.paginatedResults['pagination'] = {
+                limit: limit,
+                page: page,
+                count: results.results.length,
+                total: totalArticles,
+                has_next: has_next,
+                has_previous: skipIndex > 0
+            }
+            next();
+        } catch(e) {
+            res.status(500).json({message: 'Error occured'});
+        }
+    }
 }
 
 module.exports = router;

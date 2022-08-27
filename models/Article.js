@@ -39,8 +39,11 @@ const ArticleSchema = new mongoose.Schema({
         type: Array,
         default: ['IFC']
     },
-    fighter: {
-        type: String
+    fighters: {
+        type: Array
+    },
+    has_video: {
+        type: Boolean
     },
     location: {
         country: {
