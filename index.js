@@ -11,7 +11,7 @@ const app = express();
 
 app.use(helmet());
 app.use(cors({
-    origin: ['http://localhost', 'https://leagues-947c5.web.app'],
+    origin: ['http://localhost', 'https://leagues-947c5.web.app', 'http://localhost:8080'],
     credentials: true,
     optionsSuccessStatus: 200
 }));
