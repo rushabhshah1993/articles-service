@@ -77,7 +77,7 @@ router.get(
                         page: page,
                         limit: limit,
                         total: totalArticles,
-                        count: articles.lengths,
+                        count: articles.length,
                         has_next: has_next,
                         has_previous: skipIndex > 0
                     }
