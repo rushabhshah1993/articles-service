@@ -247,10 +247,7 @@ function createQueryObj(keys, query) {
                 queryObj.created_at["$lte"] = new Date(+query['to'])
             }
         } else if(key === 'has_video') {
-            queryObj[key] = {
-                "$regex": query[key] == 'true',
-                "$options": "i"
-            }
+            queryObj[key] = query[key] == 'true';
         }
     }
 
