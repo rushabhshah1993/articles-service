@@ -76,8 +76,8 @@ router.get(
                     pagination: {
                         page: page,
                         limit: limit,
-                        total: articles.length,
-                        count: totalArticles,
+                        total: totalArticles,
+                        count: articles.lengths,
                         has_next: has_next,
                         has_previous: skipIndex > 0
                     }
@@ -134,8 +134,8 @@ router.get(
                 pagination: {
                     page: page,
                     limit: limit,
-                    total: articles.length,
-                    count: totalArticles,
+                    total: totalArticles,
+                    count: articles.length,
                     has_next: has_next,
                     has_previous: skipIndex > 0
                 }
