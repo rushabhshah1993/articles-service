@@ -76,7 +76,7 @@ router.get(
                     pagination: {
                         page: page,
                         limit: limit,
-                        total: totalArticles,
+                        total: articles.length < articles.limit ? articles.length : totalArticles,
                         count: articles.length,
                         has_next: has_next,
                         has_previous: skipIndex > 0
