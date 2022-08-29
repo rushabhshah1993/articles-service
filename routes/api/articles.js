@@ -223,7 +223,7 @@ router.delete(
 
 function createQueryObj(keys, query) {
     let queryObj = {};
-    let singularKeys = ['country', 'city', 'tags', 'competition', 'from', 'to', 'has_video'];
+    let singularKeys = ['country', 'city', 'tags', 'competition', 'from', 'to', 'has_video', 'fighters'];
     for(let key of keys) {
         if(!singularKeys.includes(key)) {
             queryObj[key] = {
@@ -235,7 +235,7 @@ function createQueryObj(keys, query) {
                 "$regex": query[key],
                 "$options": "i"
             }
-        } else if(key === 'tags' || key === 'competition') {
+        } else if(key === 'tags' || key === 'competition' || key === 'fighters') {
             queryObj[key] = {
                 $in: query[key].split(',').map(ele => ele.trim())
             }
