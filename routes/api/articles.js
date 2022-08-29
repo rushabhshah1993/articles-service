@@ -61,6 +61,8 @@ router.get(
         const limit = parseInt(req.query.limit);
         const skipIndex = (page - 1) * limit;
 
+        let totalArticlesActual = await Article.find(queryObj).then(results => results.length);
+
         Article.find(queryObj)
         .limit(limit)
         .skip(skipIndex)
@@ -76,7 +78,7 @@ router.get(
                     pagination: {
                         page: page,
                         limit: limit,
-                        total: articles.length < limit ? articles.length : totalArticles,
+                        total: totalArticlesActual,
                         count: articles.length,
                         has_next: has_next,
                         has_previous: skipIndex > 0
