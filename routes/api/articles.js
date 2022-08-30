@@ -114,13 +114,22 @@ router.get(
 router.get(
     '/sort',
     async (req, res) => {
+        let query = req.query;
+        let queryObj = {};
+
+        if(Object.keys(query).length) {
+            let keys = Object.keys(query);
+
+            queryObj = createQueryObj(keys, query);
+        };
+
         const page = parseInt(req.query.page);
         const limit = parseInt(req.query.limit);
         const skipIndex = (page - 1) * limit;
 
         let totalArticles = await Article.find().then(results => results.length);
 
-        Article.find()
+        Article.find(queryObj)
         .sort({
             "created_at": req.query.order === 'asc' ? 1 : -1
         })
