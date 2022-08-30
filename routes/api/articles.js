@@ -64,6 +64,7 @@ router.get(
         let totalArticlesActual = await Article.find(queryObj).then(results => results.length);
 
         Article.find(queryObj)
+        .sort({created_at: -1})
         .limit(limit)
         .skip(skipIndex)
         .then(articles => {
@@ -164,6 +165,7 @@ router.get(
     paginatedResults(),
     (req, res) => {
         Article.find()
+        .sort({created_at: -1})
         .then(() => {
             return res.json(res.paginatedResults);
         })
