@@ -114,6 +114,7 @@ router.get(
 // @access Public
 router.get(
     '/sort',
+    paginatedResults(),
     async (req, res) => {
         let query = req.query;
         let queryObj = {};
@@ -165,9 +166,14 @@ router.get(
     paginatedResults(),
     (req, res) => {
         Article.find()
-        .sort({created_at: -1})
-        .then(() => {
-            return res.json(res.paginatedResults);
+        .sort({
+            "created_at": -1
+        })
+        .then(articles => {
+            return res.json({
+                results: articles,
+                pagination: res.paginatedResults.pagination
+            });
         })
         .catch(err => {
             res.status(404).json({error: 'No articles found'})
