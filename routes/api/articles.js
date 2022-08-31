@@ -218,10 +218,15 @@ router.put(
     '/:id',
     (req, res) => {
         Article.findByIdAndUpdate(req.params.id, req.body)
-        .then(article => res.json({
-            message: 'Article updated successfully',
-            article: article
-        }))
+        .then(() => {
+            let articleRequest = Article.findById(req.params.id);
+            articleRequest.then(response => {
+                return res.json({
+                    message: 'Article updated successfully',
+                    article: response
+                })
+            })
+        })
         .catch(err => res.status(400).json({error: 'Unable to edit the article'}));
     }
 );
